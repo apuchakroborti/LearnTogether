@@ -18,4 +18,8 @@ public class Profession {
 
     @Column(name = "name")
     private String name;
+
+    public Profession(String name){
+        this.name = name;
+    }
 }

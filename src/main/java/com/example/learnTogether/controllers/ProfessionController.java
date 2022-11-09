@@ -8,6 +8,7 @@ import com.example.learnTogether.services.ProfessionService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.web.PageableDefault;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 import javax.validation.Valid;
@@ -23,6 +24,13 @@ public class ProfessionController {
         this.professionService = professionService;
     }
 
+    @PreAuthorize("hasAnyAuthority('ADMIN')")
+    @PostMapping("/save-from-file")
+    public ServiceResponse saveProfessionFromFile(@RequestBody String filePath ) throws GenericException{
+        return new ServiceResponse(null, professionService.saveFromFile(filePath));
+    }
+
+    @PreAuthorize("hasAnyAuthority('ADMIN')")
     @PostMapping
     public ServiceResponse saveProfession(@Valid @RequestBody ProfessionDto professionDto) throws GenericException{
         return new ServiceResponse(null, professionService.save(professionDto));

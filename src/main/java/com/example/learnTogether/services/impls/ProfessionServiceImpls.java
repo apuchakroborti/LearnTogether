@@ -16,6 +16,11 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 
+import java.io.BufferedReader;
+import java.nio.file.Files;
+import java.nio.file.Paths;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Optional;
 
 @Service
@@ -28,6 +33,30 @@ public class ProfessionServiceImpls implements ProfessionService {
     ProfessionServiceImpls(ProfessionRepository professionRepository){
         this.professionRepository = professionRepository;
     }
+
+    @Override
+    public Boolean saveFromFile(String filePath) throws GenericException{
+        Optional<Profession> optionalProfession = professionRepository.findById(1L);
+        if(optionalProfession.isPresent()){
+            throw new GenericException("Already inserted profession data!");
+        }
+        List<Profession> professionList = new ArrayList<>();
+        try(BufferedReader reader = Files.newBufferedReader(Paths.get(filePath)))
+        {
+
+            reader.lines().forEach(
+                    line->professionList.add(new Profession(line.toString()))
+            );
+
+            professionRepository.saveAll(professionList);
+            return true;
+        }
+        catch (Exception e) {
+            logger.error("Exception occurred while saving profession info from file, message: {}", e.getMessage());
+            throw new GenericException(e.getMessage(), e);
+        }
+
+    };
 
     @Override
     public Profession save(ProfessionDto professionDto) throws GenericException {

@@ -8,6 +8,7 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 
 public interface ProfessionService {
+    Boolean saveFromFile(String filePath) throws GenericException;
     Profession save(ProfessionDto professionDto) throws GenericException;
     Profession getById(Long id) throws GenericException;
     Page<Profession> getBySearchCriteria(ProfessionSearchCriteria criteria, Pageable pageable) throws GenericException;
