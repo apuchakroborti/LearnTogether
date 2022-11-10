@@ -25,6 +25,10 @@ $ CREATE ROLE apu WITH LOGIN SUPERUSER PASSWORD 'tigerit';
 Build project: $ mvn clean package
 Run: mvn spring-boot: run 
 
+To store all of the occupations into db from file through API call: \
+API: POST http://127.0.0.1:8080/service-api/api/profession/save-from-file \
+BODY: src\main\resources\profession_list.txt
+
 Access and Refresh Token generation: for Admin user \
 URL: http://127.0.0.1:8080/service-api/oauth/token \
 Request Method: POST \
