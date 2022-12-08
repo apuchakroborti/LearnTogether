@@ -17,6 +17,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
+import org.springframework.cache.annotation.CachePut;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.web.PageableDefault;
@@ -33,9 +34,8 @@ import org.springframework.cache.annotation.Cacheable;
 import org.springframework.cache.annotation.CacheEvict;
 
 @Service
-//@Transactional
+@Transactional
 @Slf4j
-//@EnableTransactionManagement
 public class UserProfileServiceImpl implements UserProfileService {
 
     Logger logger = LoggerFactory.getLogger(UserProfileServiceImpl.class);
@@ -97,7 +97,7 @@ public class UserProfileServiceImpl implements UserProfileService {
         }
     }
     @Override
-    @Transactional
+    @CachePut(value = "userCache", key = "#profileCreateUpdateDto.id")
     public UserProfileDto userSignUp(UserProfileCreateUpdateDto profileCreateUpdateDto) throws GenericException {
         try {
 
@@ -148,6 +148,8 @@ public class UserProfileServiceImpl implements UserProfileService {
 
             UserProfileDto userProfileDto = new UserProfileDto();
             Utils.copyProperty(userProfile, userProfileDto);
+
+            profileCreateUpdateDto.setId(userProfileDto.getId());
             return userProfileDto;
         }catch (GenericException e){
             throw e;
@@ -177,13 +179,10 @@ public class UserProfileServiceImpl implements UserProfileService {
     }
 
     @Override
-//    @CacheEvict(value = "userCache", key = "#id", beforeInvocation = true)
     @Cacheable(value = "userCache", key = "#id", unless = "#result==null")
-//    @Cacheable(value = "userCache", key = "#id")
     @Transactional
     public UserProfileDto findUserProfileById(Long id) throws GenericException{
 
-        log.info("search user findUserProfileById service start...");
 
         try {
             Optional<UserProfile> optionalUser = userProfileRepository.findById(id);
@@ -193,7 +192,6 @@ public class UserProfileServiceImpl implements UserProfileService {
             } else {
                 UserProfileDto customUserDto = new UserProfileDto();
                 Utils.copyProperty(optionalUser.get(), customUserDto);
-                log.info("search user findUserProfileById service end");
                 return customUserDto;
             }
         }catch (Exception e){
@@ -203,7 +201,8 @@ public class UserProfileServiceImpl implements UserProfileService {
     }
 
     @Override
-    public UserProfileDto updateEmployeeById(Long id, UserProfileDto customUserDto) throws GenericException{
+    @CachePut(value = "userCache", key = "#id")
+    public UserProfileDto updateEmployeeById(Long id, UserProfileCreateUpdateDto createUpdateDto) throws GenericException{
         try {
             Optional<UserProfile> loggedInEmployee = userProfileRepository.getLoggedInEmployee();
             if (loggedInEmployee.isPresent() && !loggedInEmployee.get().getId().equals(id)) {
@@ -216,18 +215,19 @@ public class UserProfileServiceImpl implements UserProfileService {
             }
 
 
-            UserProfile employee = optionalEmployee.get();
-            if (!Utils.isNullOrEmpty(customUserDto.getFirstName())) {
-                employee.setFirstName(customUserDto.getFirstName());
+            UserProfile userProfile = optionalEmployee.get();
+            if (!Utils.isNullOrEmpty(createUpdateDto.getFirstName())) {
+                userProfile.setFirstName(createUpdateDto.getFirstName());
             }
-            if (!Utils.isNullOrEmpty(customUserDto.getLastName())) {
-                employee.setLastName(customUserDto.getLastName());
+            if (!Utils.isNullOrEmpty(createUpdateDto.getLastName())) {
+                userProfile.setLastName(createUpdateDto.getLastName());
             }
-            employee = userProfileRepository.save(employee);
+            userProfile = userProfileRepository.save(userProfile);
 
-            Utils.copyProperty(employee, customUserDto);
+            UserProfileDto userProfileDto = new UserProfileDto();
+            Utils.copyProperty(userProfile, userProfileDto);
 
-            return customUserDto;
+            return userProfileDto;
         }catch (Exception e){
          logger.error("Exception occurred while updating employee, id: {}", id);
          throw new GenericException(e.getMessage(), e);
@@ -238,9 +238,7 @@ public class UserProfileServiceImpl implements UserProfileService {
     @Override
     @Cacheable(cacheNames = { "userCache" })
     @Transactional
-    public Page<UserProfileDto> getEmployeeList(UserProfileSearchCriteria criteria, @PageableDefault(value = 10) Pageable pageable) throws GenericException{
-        log.info("search user profile service start...");
-
+    public Page<UserProfileDto> getUserList(UserProfileSearchCriteria criteria, @PageableDefault(value = 10) Pageable pageable) throws GenericException{
         Optional<UserProfile> loggedInEmployee = userProfileRepository.getLoggedInEmployee();
         Long id = null;
         if(loggedInEmployee.isPresent()){
@@ -266,8 +264,6 @@ public class UserProfileServiceImpl implements UserProfileService {
             }
         });
 
-
-        log.info("search user profile service end");
         return userProfileDtoList;
     }
 

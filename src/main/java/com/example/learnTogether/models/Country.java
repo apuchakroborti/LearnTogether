@@ -22,6 +22,6 @@ public class Country {
     private String name;
     private String code;
 
-    @OneToMany(mappedBy = "country", fetch = FetchType.EAGER)
+    @OneToMany(mappedBy = "country", fetch = FetchType.LAZY)
     private List<District> districtList = new ArrayList<>();
 }

@@ -46,11 +46,9 @@ public class UserProfileController {
     @PreAuthorize("hasAnyAuthority('ADMIN', 'USER')")
     @GetMapping
     public ServiceResponse<Page<UserProfileDto>> searchEmployee(UserProfileSearchCriteria criteria, @PageableDefault(value = 10) Pageable pageable) throws GenericException {
-        log.info("search user profile start...");
 
-        Page<UserProfileDto> userProfileDtoList = customUserService.getEmployeeList(criteria, pageable);
+        Page<UserProfileDto> userProfileDtoList = customUserService.getUserList(criteria, pageable);
 
-        log.info("search user profile end");
         return new ServiceResponse(Utils.getSuccessResponse(),
                 userProfileDtoList.getContent(),
                 new Pagination(userProfileDtoList.getTotalElements(),
@@ -62,16 +60,14 @@ public class UserProfileController {
     @PreAuthorize("hasAnyAuthority('ADMIN', 'USER')")
     @GetMapping(path = "/{id}")
     public ServiceResponse<UserProfileDto> getUserProfileById(@PathVariable(name = "id") Long id ) throws GenericException {
-        log.info("search user getUserProfileById start...");
         UserProfileDto userProfileDto = customUserService.findUserProfileById(id);
-        log.info("search user getUserProfileById end");
         return new ServiceResponse<>(null, userProfileDto);
     }
 
     @PreAuthorize("hasAnyAuthority('ADMIN', 'USER')")
     @PutMapping("/{id}")
-    public ServiceResponse<UserProfileDto> updateEmployeeById(@PathVariable(name = "id") Long id, @RequestBody UserProfileDto employeeBean) throws GenericException {
-        return new ServiceResponse(null, customUserService.updateEmployeeById(id, employeeBean));
+    public ServiceResponse<UserProfileDto> updateEmployeeById(@PathVariable(name = "id") Long id, @RequestBody UserProfileCreateUpdateDto createUpdateDto) throws GenericException {
+        return new ServiceResponse(null, customUserService.updateEmployeeById(id, createUpdateDto));
     }
 
     @PreAuthorize("hasAnyAuthority('ADMIN', 'USER')")

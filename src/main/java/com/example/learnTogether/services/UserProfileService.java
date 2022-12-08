@@ -11,7 +11,7 @@ public interface UserProfileService {
     UserProfileDto userSignUp(UserProfileCreateUpdateDto user) throws GenericException;
     UserProfileDto findByUsername(String username) throws GenericException;
     UserProfileDto findUserProfileById(Long id) throws GenericException;
-    UserProfileDto updateEmployeeById(Long id, UserProfileDto employeeBean) throws GenericException;
-    Page<UserProfileDto> getEmployeeList(UserProfileSearchCriteria criteria, Pageable pageable) throws GenericException;
+    UserProfileDto updateEmployeeById(Long id, UserProfileCreateUpdateDto createUpdateDto) throws GenericException;
+    Page<UserProfileDto> getUserList(UserProfileSearchCriteria criteria, Pageable pageable) throws GenericException;
     Boolean  deleteEmployeeById(Long id) throws GenericException;
 }

@@ -3,3 +3,7 @@ hazelcast:
     join:
       multicast:
         enabled: true
+
+  management-center:
+    data-access-enabled: true
+    console-enabled: true
