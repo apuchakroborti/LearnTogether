@@ -1,10 +1,11 @@
 package com.example.learnTogether.controllers;
 
+import com.example.learnTogether.dto.APIResponse;
+import com.example.learnTogether.dto.Pagination;
 import com.example.learnTogether.dto.UserProfileCreateUpdateDto;
 import com.example.learnTogether.dto.request.PasswordChangeRequestDto;
 import com.example.learnTogether.dto.request.PasswordResetRequestDto;
 import com.example.learnTogether.dto.request.UserProfileSearchCriteria;
-import com.example.learnTogether.dto.response.Pagination;
 import com.example.learnTogether.dto.response.PasswordChangeResponseDto;
 import com.example.learnTogether.dto.response.ServiceResponse;
 import com.example.learnTogether.exceptions.GenericException;
@@ -17,10 +18,13 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.web.PageableDefault;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 import javax.validation.Valid;
+import java.util.List;
 
 
 @RestController
@@ -45,16 +49,17 @@ public class UserProfileController {
 
     @PreAuthorize("hasAnyAuthority('ADMIN', 'USER')")
     @GetMapping
-    public ServiceResponse<Page<UserProfileDto>> searchEmployee(UserProfileSearchCriteria criteria, @PageableDefault(value = 10) Pageable pageable) throws GenericException {
+    public ResponseEntity<APIResponse> searchEmployee(UserProfileSearchCriteria criteria, @PageableDefault(value = 10) Pageable pageable) throws GenericException {
 
-        Page<UserProfileDto> userProfileDtoList = customUserService.getUserList(criteria, pageable);
+        Page<UserProfileDto> userProfileDtoPage = customUserService.getUserList(criteria, pageable);
 
-        return new ServiceResponse(Utils.getSuccessResponse(),
-                userProfileDtoList.getContent(),
-                new Pagination(userProfileDtoList.getTotalElements(),
-                        userProfileDtoList.getNumberOfElements(),
-                        userProfileDtoList.getNumber(),
-                        userProfileDtoList.getSize()));
+        APIResponse<List<UserProfileDto>> responseDTO = APIResponse
+                .<List<UserProfileDto>>builder()
+                .status("SUCCESS")
+                .results(userProfileDtoPage.getContent())
+                .pagination(new Pagination(userProfileDtoPage.getTotalElements(), userProfileDtoPage.getNumberOfElements(), userProfileDtoPage.getNumber(), userProfileDtoPage.getSize()))
+                .build();
+        return new ResponseEntity<APIResponse>(responseDTO, HttpStatus.OK);
     }
 
     @PreAuthorize("hasAnyAuthority('ADMIN', 'USER')")

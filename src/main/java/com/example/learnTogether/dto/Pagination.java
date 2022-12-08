@@ -1,4 +1,4 @@
-package com.example.learnTogether.dto.response;
+package com.example.learnTogether.dto;
 
 import lombok.AllArgsConstructor;
 import lombok.Data;

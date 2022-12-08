@@ -1,8 +1,8 @@
 package com.example.learnTogether.utils;
 
+import com.example.learnTogether.dto.Pagination;
 import com.example.learnTogether.dto.response.ErrorModel;
 import com.example.learnTogether.dto.response.Metadata;
-import com.example.learnTogether.dto.response.Pagination;
 import com.example.learnTogether.dto.response.ServiceResponse;
 import org.modelmapper.ModelMapper;
 import org.modelmapper.convention.MatchingStrategies;

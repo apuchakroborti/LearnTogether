@@ -8,7 +8,8 @@ SpringBoot, \
 Hibernate, \
 Spring Data JPA[ 
 We can use Spring Data JPA to reduce the amount of boilerplate code required to implement the data access object (DAO) layer.            
-Spring Data JPA is not a JPA provider. It is a library/framework that adds an extra layer of abstraction on the top of our JPA provider (like Hibernate). It uses Hibernate as a default JPA provider. ], \
+Spring Data JPA is not a JPA provider. It is a library/framework that adds an extra layer of abstraction on the top of our JPA provider (like Hibernate). 
+It uses Hibernate as a default JPA provider. ], \
 Flyway, and PostgreSQL 
 
 Steps to run this project: \
@@ -48,6 +49,23 @@ Now You can call the User related crud services: \
 HEADERS:
 Content-Type: application/json
 Authorization: Bearer {{access_token}} 
+
+
+Hazlecast Cache integration: \
+1. Add the below depdendency to the pom.xml for the hazlecast secondary hibernate caching: \
+<dependency>
+    <groupId>com.hazelcast</groupId>
+    <artifactId>hazelcast-all</artifactId>
+    <version>3.12.5</version>
+</dependency>
+
+2. then add the configuration bean.
+3. add the @EnableCaching to the main class
+4. use the annotations: \     
+    while inserting or modification of data: @CachePut(value = "userCache", key = "#inputVariableName.id") \
+    while searching by id: @Cacheable(value = "userCache", key = "#id", unless = "#result==null") \
+    while deleting any data: @CacheEvict(value = "userCache", key = "#id")
+    
 
 Common Error: \
 Caused by: org.postgresql.util.PSQLException:  

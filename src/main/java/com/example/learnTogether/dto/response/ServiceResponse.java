@@ -1,5 +1,6 @@
 package com.example.learnTogether.dto.response;
 
+import com.example.learnTogether.dto.Pagination;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 
