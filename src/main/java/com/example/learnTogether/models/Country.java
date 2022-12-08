@@ -12,6 +12,7 @@ import java.util.List;
 @Setter
 @NoArgsConstructor
 @AllArgsConstructor
+@ToString
 public class Country {
 
     @Id
@@ -21,6 +22,6 @@ public class Country {
     private String name;
     private String code;
 
-    @OneToMany(mappedBy = "country", fetch = FetchType.LAZY)
+    @OneToMany(mappedBy = "country", fetch = FetchType.EAGER)
     private List<District> districtList = new ArrayList<>();
 }

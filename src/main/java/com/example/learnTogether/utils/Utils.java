@@ -57,41 +57,8 @@ public abstract class Utils {
         modelMapper.getConfiguration().setMatchingStrategy(MatchingStrategies.STRICT);
         return modelMapper.map(mapperObject, targetClass);
     }
-    public static List<LocalDate> getCurrentFinancialYear(){
-        List<LocalDate> financialYear = new ArrayList<>();
-        LocalDate currentDate = LocalDate.now();
-        LocalDate currFinancialYearStart = null;
-        LocalDate currFinancialYearEnd = null;
 
-        if (currentDate.getMonth().getValue() <= 6) {
-            currFinancialYearStart = LocalDate.of(currentDate.getYear() - 1, 7, 1);
-            currFinancialYearEnd = LocalDate.of(currentDate.getYear(), 6, 30);
-        } else {
-            currFinancialYearStart = LocalDate.of(currentDate.getYear(), 7, 1);
-            currFinancialYearEnd = LocalDate.of(currentDate.getYear() + 1, 6, 30);
-        }
 
-        financialYear.add(currFinancialYearStart);
-        financialYear.add(currFinancialYearEnd);
-        return financialYear;
-    }
-    public static Integer getRemainingMonthForTheCurrentFinancialYear(){
-
-        LocalDate currentDate = LocalDate.now();
-        Integer remainingNumberOfMonth = 0;
-
-        if (currentDate.getMonth().getValue() <= 6) {
-            remainingNumberOfMonth = 6 - currentDate.getMonth().getValue() + 1;
-        } else {
-            remainingNumberOfMonth = 12 - currentDate.getMonth().getValue() + 1;
-        }
-        return remainingNumberOfMonth;
-    }
-    public static Metadata getSingleErrorBadRequest(List<ErrorModel> errorModelList, String field, String message, String description){
-        List<ErrorModel> errorModels = new ArrayList<>();
-        errorModels.add(new ErrorModel(field, message, description));
-        return new Metadata(HttpStatus.BAD_REQUEST,  errorModels);
-    }
     public static Metadata getInternalServerError(){
         List<ErrorModel> errorModels = new ArrayList<>();
         errorModels.add(new ErrorModel(null, "Internal server error", "Please contact with admin"));

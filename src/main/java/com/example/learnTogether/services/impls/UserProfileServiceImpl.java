@@ -1,20 +1,18 @@
 package com.example.learnTogether.services.impls;
 
+import com.example.learnTogether.dto.UserProfileCreateUpdateDto;
 import com.example.learnTogether.dto.request.UserProfileSearchCriteria;
-import com.example.learnTogether.dto.response.ServiceResponse;
 import com.example.learnTogether.exceptions.GenericException;
 import com.example.learnTogether.dto.UserProfileDto;
-import com.example.learnTogether.models.UserProfile;
-import com.example.learnTogether.repository.UserProfileRepository;
-import com.example.learnTogether.models.Authority;
-import com.example.learnTogether.models.User;
-import com.example.learnTogether.repository.AuthorityRepository;
-import com.example.learnTogether.repository.UserRepository;
+import com.example.learnTogether.models.*;
+import com.example.learnTogether.repository.*;
 import com.example.learnTogether.services.UserProfileService;
 import com.example.learnTogether.specifications.UserProfileSearchSpecifications;
 import com.example.learnTogether.utils.Defs;
 import com.example.learnTogether.utils.Role;
 import com.example.learnTogether.utils.Utils;
+import com.hazelcast.core.HazelcastInstance;
+import lombok.extern.slf4j.Slf4j;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -27,32 +25,50 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
-import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Optional;
+import java.util.function.Function;
+
+import org.springframework.cache.annotation.Cacheable;
+import org.springframework.cache.annotation.CacheEvict;
 
 @Service
-@Transactional
+//@Transactional
+@Slf4j
+//@EnableTransactionManagement
 public class UserProfileServiceImpl implements UserProfileService {
 
     Logger logger = LoggerFactory.getLogger(UserProfileServiceImpl.class);
 
+    private final HazelcastInstance hazelcastInstance;
     private final UserProfileRepository userProfileRepository;
     private final UserRepository userRepository;
     private final AuthorityRepository authorityRepository;
+    private final ProfessionRepository professionRepository;
+    private final DistrictRepository districtRepository;
+    private final CountryRepository countryRepository;
 
     @Qualifier("userPasswordEncoder")
+    @Autowired
     private PasswordEncoder passwordEncoder;
 
     @Autowired
     public UserProfileServiceImpl(
             UserProfileRepository userProfileRepository,
             UserRepository userRepository,
-            AuthorityRepository authorityRepository
+            AuthorityRepository authorityRepository,
+            ProfessionRepository professionRepository,
+            DistrictRepository districtRepository,
+            CountryRepository countryRepository,
+            @Qualifier("hazelcastInstance") HazelcastInstance hazelcastInstance
     ){
         this.userProfileRepository = userProfileRepository;
         this.userRepository = userRepository;
         this.authorityRepository = authorityRepository;
+        this.professionRepository = professionRepository;
+        this.districtRepository = districtRepository;
+        this.countryRepository = countryRepository;
+        this.hazelcastInstance = hazelcastInstance;
     }
 
     private User addOauthUser(UserProfile employee, String password) throws GenericException {
@@ -81,25 +97,58 @@ public class UserProfileServiceImpl implements UserProfileService {
         }
     }
     @Override
-    public ServiceResponse<UserProfileDto> userSignUp(UserProfileDto customUserDto) throws GenericException {
+    @Transactional
+    public UserProfileDto userSignUp(UserProfileCreateUpdateDto profileCreateUpdateDto) throws GenericException {
         try {
-            Optional<UserProfile> optionalUserProfile = userProfileRepository.findByUserId(customUserDto.getUserId());
-            if (optionalUserProfile.isPresent()) throw new GenericException(Defs.USER_ALREADY_EXISTS);
 
-            UserProfile employee = new UserProfile();
-            Utils.copyProperty(customUserDto, employee);
+            UserProfile userProfile = new UserProfile();
+            Utils.copyProperty(profileCreateUpdateDto, userProfile);
+            //set Profession
+            if(profileCreateUpdateDto.getProfessionId()!=null){
+                Optional<Profession> optionalProfession = professionRepository.findById(profileCreateUpdateDto.getProfessionId());
+                if(optionalProfession.isPresent()){
+                    userProfile.setProfession(optionalProfession.get());
+                }
+            }else{
+                userProfile.setProfession(null);
+            }
 
-            User user = addOauthUser(employee, customUserDto.getPassword());
-            employee.setOauthUser(user);
-            employee.setStatus(true);
+            //setDistrict
+            if(profileCreateUpdateDto.getDistrictId()!=null){
+                Optional<District> optionalDistrict = districtRepository.findById(profileCreateUpdateDto.getDistrictId());
+                if(optionalDistrict.isPresent()){
+                    userProfile.setDistrict(optionalDistrict.get());
+                }
+            }else{
+                userProfile.setDistrict(null);
+            }
 
-            employee.setCreateTime(LocalDateTime.now());
+            //setCountry
+            if(profileCreateUpdateDto.getCountryId()!=null){
+                Optional<Country> optionalCountry = countryRepository.findById(profileCreateUpdateDto.getCountryId());
+                if(optionalCountry.isPresent()){
+                    userProfile.getDistrict().setCountry(optionalCountry.get());
+                }
+            }else{
+                userProfile.getDistrict().setCountry(null);
+            }
 
-            employee = userProfileRepository.save(employee);
+            //generate and set userId
+            Long currentId = userProfileRepository.getMaxId();
+            userProfile.setUserId("USER"+(currentId+1));
 
 
-            Utils.copyProperty(employee, customUserDto);
-            return new ServiceResponse(Utils.getSuccessResponse(), customUserDto);
+            User user = addOauthUser(userProfile, profileCreateUpdateDto.getPassword());
+            userProfile.setOauthUser(user);
+            userProfile.setStatus(true);
+
+            userProfile.setCreateTime(LocalDateTime.now());
+
+            userProfile = userProfileRepository.save(userProfile);
+
+            UserProfileDto userProfileDto = new UserProfileDto();
+            Utils.copyProperty(userProfile, userProfileDto);
+            return userProfileDto;
         }catch (GenericException e){
             throw e;
         }catch (Exception e){
@@ -126,20 +175,26 @@ public class UserProfileServiceImpl implements UserProfileService {
             throw new GenericException(e.getMessage());
         }
     }
+
     @Override
-    public ServiceResponse<UserProfileDto> findEmployeeById(Long id) throws GenericException{
+//    @CacheEvict(value = "userCache", key = "#id", beforeInvocation = true)
+    @Cacheable(value = "userCache", key = "#id", unless = "#result==null")
+//    @Cacheable(value = "userCache", key = "#id")
+    @Transactional
+    public UserProfileDto findUserProfileById(Long id) throws GenericException{
+
+        log.info("search user findUserProfileById service start...");
+
         try {
             Optional<UserProfile> optionalUser = userProfileRepository.findById(id);
 
             if (!optionalUser.isPresent() || optionalUser.get().getStatus().equals(false)) {
-                return new ServiceResponse<>(Utils.getSingleErrorBadRequest(
-                        new ArrayList<>(),
-                        "employeeId", Defs.EMPLOYEE_NOT_FOUND,
-                        "Please check employee id is correct"), null);
+                throw  new GenericException(Defs.EMPLOYEE_NOT_FOUND);
             } else {
                 UserProfileDto customUserDto = new UserProfileDto();
                 Utils.copyProperty(optionalUser.get(), customUserDto);
-                return new ServiceResponse(Utils.getSuccessResponse(), customUserDto);
+                log.info("search user findUserProfileById service end");
+                return customUserDto;
             }
         }catch (Exception e){
             logger.error("Error occurred while fetching employee by id: {}", id);
@@ -148,22 +203,16 @@ public class UserProfileServiceImpl implements UserProfileService {
     }
 
     @Override
-    public ServiceResponse<UserProfileDto> updateEmployeeById(Long id, UserProfileDto customUserDto) throws GenericException{
+    public UserProfileDto updateEmployeeById(Long id, UserProfileDto customUserDto) throws GenericException{
         try {
             Optional<UserProfile> loggedInEmployee = userProfileRepository.getLoggedInEmployee();
             if (loggedInEmployee.isPresent() && !loggedInEmployee.get().getId().equals(id)) {
-                return new ServiceResponse<>(Utils.getSingleErrorBadRequest(
-                        new ArrayList<>(),
-                        null, Defs.NO_PERMISSION_TO_DELETE,
-                        "Please check you have permission to do this operation!"), null);
+                throw new GenericException(Defs.NO_PERMISSION_TO_UPDATE);
             }
 
             Optional<UserProfile> optionalEmployee = userProfileRepository.findById(id);
             if (!optionalEmployee.isPresent() || optionalEmployee.get().getStatus().equals(false)){
-                return new ServiceResponse<>(Utils.getSingleErrorBadRequest(
-                        new ArrayList<>(),
-                        "employeeId", Defs.EMPLOYEE_NOT_FOUND,
-                        "Please check employee id is correct"), null);
+                throw new GenericException(Defs.EMPLOYEE_NOT_FOUND);
             }
 
 
@@ -178,15 +227,20 @@ public class UserProfileServiceImpl implements UserProfileService {
 
             Utils.copyProperty(employee, customUserDto);
 
-            return new ServiceResponse(Utils.getSuccessResponse(), customUserDto);
+            return customUserDto;
         }catch (Exception e){
          logger.error("Exception occurred while updating employee, id: {}", id);
          throw new GenericException(e.getMessage(), e);
         }
     }
 
+
     @Override
-    public Page<UserProfile> getEmployeeList(UserProfileSearchCriteria criteria, @PageableDefault(value = 10) Pageable pageable) throws GenericException{
+    @Cacheable(cacheNames = { "userCache" })
+    @Transactional
+    public Page<UserProfileDto> getEmployeeList(UserProfileSearchCriteria criteria, @PageableDefault(value = 10) Pageable pageable) throws GenericException{
+        log.info("search user profile service start...");
+
         Optional<UserProfile> loggedInEmployee = userProfileRepository.getLoggedInEmployee();
         Long id = null;
         if(loggedInEmployee.isPresent()){
@@ -202,27 +256,35 @@ public class UserProfileServiceImpl implements UserProfileService {
                         .and(UserProfileSearchSpecifications.withStatus(true))
                 ,pageable
         );
-        return userPage;
+
+
+        Page<UserProfileDto> userProfileDtoList = userPage.map(new Function<UserProfile, UserProfileDto>() {
+            @Override
+            public UserProfileDto apply(UserProfile userProfile) {
+                UserProfileDto userProfileDto =  Utils.convertClass(userProfile, UserProfileDto.class);
+                return userProfileDto;
+            }
+        });
+
+
+        log.info("search user profile service end");
+        return userProfileDtoList;
     }
 
+    @CacheEvict(value = "userCache", key = "#id")
     @Override
-    public ServiceResponse<Boolean> deleteEmployeeById(Long id) throws GenericException{
+    @Transactional
+    public Boolean deleteEmployeeById(Long id) throws GenericException{
         try {
             Optional<UserProfile> loggedInEmployee = userProfileRepository.getLoggedInEmployee();
             Optional<UserProfile> optionalEmployee = userProfileRepository.findById(id);
             if (loggedInEmployee.isPresent() && optionalEmployee.isPresent() &&
                     !loggedInEmployee.get().getId().equals(optionalEmployee.get().getId())) {
 
-                return new ServiceResponse<>(Utils.getSingleErrorBadRequest(
-                        new ArrayList<>(),
-                        null, Defs.NO_PERMISSION_TO_DELETE,
-                        "Please check you have permission to do this operation!"), null);
+                throw  new GenericException(Defs.NO_PERMISSION_TO_DELETE);
             }
             if (!optionalEmployee.isPresent()) {
-                return new ServiceResponse<>(Utils.getSingleErrorBadRequest(
-                        new ArrayList<>(),
-                        "employeeId", Defs.EMPLOYEE_NOT_FOUND,
-                        "Please check employee id is correct"), null);
+               throw new GenericException(Defs.EMPLOYEE_NOT_FOUND);
             }
 
             UserProfile employee = optionalEmployee.get();
@@ -236,7 +298,7 @@ public class UserProfileServiceImpl implements UserProfileService {
                 logger.error(Defs.EXCEPTION_OCCURRED_WHILE_SAVING_USER_INFO+", message: {}", e.getMessage());
                 throw new GenericException(Defs.EXCEPTION_OCCURRED_WHILE_SAVING_USER_INFO, e);
             }
-            return new ServiceResponse(Utils.getSuccessResponse(), true);
+            return true;
         } catch (GenericException e){
             throw e;
         }catch (Exception e){

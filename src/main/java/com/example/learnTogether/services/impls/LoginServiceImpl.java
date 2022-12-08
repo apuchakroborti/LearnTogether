@@ -51,16 +51,10 @@ public class LoginServiceImpl implements LoginService {
                         customUserDto.setLastName("Admin");
                     }
                 } else {
-                    return new ServiceResponse<>(Utils.getSingleErrorBadRequest(
-                            new ArrayList<>(),
-                            "username, password", null,
-                            "Please check username or password is incorrect"), null);
+                   throw new GenericException("Please check username or password is incorrect");
                 }
             } else {
-                return new ServiceResponse<>(Utils.getSingleErrorBadRequest(
-                        new ArrayList<>(),
-                        "username, password", null,
-                        "Please check username or password is incorrect"), null);
+                throw new GenericException("Please check username or password is incorrect");
             }
             return new ServiceResponse(Utils.getSuccessResponse(), customUserDto);
         }catch (Exception e){

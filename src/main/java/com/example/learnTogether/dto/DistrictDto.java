@@ -6,15 +6,15 @@ import lombok.NoArgsConstructor;
 import lombok.Setter;
 
 import javax.validation.constraints.NotNull;
+import java.io.Serializable;
 
 @Getter
 @Setter
 @NoArgsConstructor
 @AllArgsConstructor
-public class DistrictDto {
+public class DistrictDto implements Serializable {
     private Long id;
-    @NotNull(message = "Country id must be given!")
-    private CountryDto country;
     private String name;
-    private String code;
+//    private String code;
+    private CountryDto country;
 }

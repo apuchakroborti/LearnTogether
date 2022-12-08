@@ -42,7 +42,7 @@ public class DistrictServiceImpls implements DistrictService {
             if(!countryOptional.isPresent())throw new GenericException("Country "+Defs.NOT_FOUND);
 
             District district = new District();
-            district.setCountry(countryOptional.get());
+//            district.setCountry(countryOptional.get());
 
             Utils.copyProperty(districtDto, district);
             district = districtRepository.save(district);

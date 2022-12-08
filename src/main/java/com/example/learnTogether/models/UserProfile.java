@@ -47,9 +47,9 @@ public class UserProfile extends EntityCommon{
     @JoinColumn(name = "DISTRICT_ID")
     private District district;
 
-    @ManyToOne(fetch = FetchType.LAZY)
+   /* @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "COUNTRY_ID")
-    private Country country;
+    private Country country;*/
 
     @Column(name = "STATUS", nullable = false)
     private Boolean status;

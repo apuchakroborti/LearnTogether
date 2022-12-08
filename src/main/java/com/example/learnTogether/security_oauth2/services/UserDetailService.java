@@ -74,10 +74,7 @@ public class UserDetailService implements UserService, UserDetailsService {
                 user.setPassword(passwordEncoder.encode(requestDto.getNewPassword()));
                 userRepository.save(user);
             } else {
-                return new ServiceResponse<>(Utils.getSingleErrorBadRequest(
-                        new ArrayList<>(),
-                        "password", Defs.PASSWORD_MISMATCHED,
-                        "Please check password is correct"), null);
+                throw new GenericException(Defs.PASSWORD_MISMATCHED);
             }
 
             return new ServiceResponse(Utils.getSuccessResponse(),
@@ -94,10 +91,7 @@ public class UserDetailService implements UserService, UserDetailsService {
         try {
             Optional<UserProfile> optionalEmployee = customUserRepository.findByEmail(passwordResetRequestDto.getUsername());
             if (!optionalEmployee.isPresent() || optionalEmployee.get().getStatus().equals(false)) {
-                return new ServiceResponse<>(Utils.getSingleErrorBadRequest(
-                        new ArrayList<>(),
-                        "username", Defs.USER_NOT_FOUND,
-                        "Please check username is correct"), null);
+                throw new GenericException(Defs.USER_NOT_FOUND);
             }
 
             UserDetails userDetails = loadUserByUsername(passwordResetRequestDto.getUsername());

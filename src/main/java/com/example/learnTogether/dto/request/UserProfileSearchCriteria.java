@@ -1,9 +1,15 @@
 package com.example.learnTogether.dto.request;
 
+import lombok.AllArgsConstructor;
 import lombok.Data;
+import lombok.NoArgsConstructor;
+
+import java.io.Serializable;
 
 @Data
-public class UserProfileSearchCriteria {
+@NoArgsConstructor
+@AllArgsConstructor
+public class UserProfileSearchCriteria implements Serializable {
 
     private Long id;
     private String email;
