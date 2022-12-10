@@ -7,8 +7,6 @@ import com.apu.example.learnTogether.repository.*;
 import com.apu.example.learnTogether.specifications.UserProfileSearchSpecifications;
 import com.apu.example.learnTogether.dto.request.UserProfileSearchCriteria;
 import com.apu.example.learnTogether.dto.UserProfileDto;
-import com.apu.example.learnTogether.models.*;
-import com.apu.example.learnTogether.repository.*;
 import com.apu.example.learnTogether.services.UserProfileService;
 import com.apu.example.learnTogether.utils.Defs;
 import com.apu.example.learnTogether.utils.Role;

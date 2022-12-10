@@ -50,6 +50,22 @@ HEADERS:
 Content-Type: application/json
 Authorization: Bearer {{access_token}} 
 
+GraphQL integration:
+1. Add the dependency below:
+<dependency>
+    <groupId>com.graphql-java</groupId>
+    <artifactId>graphql-spring-boot-starter</artifactId>
+    <version>3.6.0</version>
+</dependency>
+<dependency>
+    <groupId>com.graphql-java</groupId>
+    <artifactId>graphql-java-tools</artifactId>
+    <version>3.2.0</version>
+</dependency>
+2. create graphQL query
+3. Create Datafetchers
+4. Create GraphQLService
+5. Create Resource/Controller for graphQL
 
 Hazlecast Cache integration: \
 1. Add the below depdendency to the pom.xml for the hazlecast secondary hibernate caching: \

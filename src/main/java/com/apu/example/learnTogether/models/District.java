@@ -3,6 +3,7 @@ package com.apu.example.learnTogether.models;
 import lombok.*;
 
 import javax.persistence.*;
+import java.io.Serializable;
 
 @Entity
 @Table(name = "USER_DISTRICT")
@@ -11,7 +12,7 @@ import javax.persistence.*;
 @NoArgsConstructor
 @AllArgsConstructor
 @ToString
-public class District {
+public class District implements Serializable {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)

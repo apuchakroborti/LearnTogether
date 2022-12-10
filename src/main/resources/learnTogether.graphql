@@ -1,0 +1,33 @@
+schema{
+    query: Query
+}
+
+type Query{
+
+    getAllUserProfiles : [UserProfile]
+    findUserProfile(email: String) : UserProfile
+    getAllDistricts: [Distrcit]
+}
+
+type UserProfile{
+
+    id: Int
+    userId: String
+    firstName: String
+    lastName: String
+    email: String
+    phone: String
+    dateOfBirth: String
+    status: Boolean
+    district: [Distrcit]!
+}
+type Distrcit{
+    id: Int
+    country: [Country]!
+    name: String
+}
+type Country{
+    id: Int
+    name: String
+    code: String
+}
