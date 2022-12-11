@@ -6,7 +6,7 @@ type Query{
 
     getAllUserProfiles : [UserProfile]
     findUserProfile(email: String) : UserProfile
-    getAllDistricts: [Distrcit]
+    getAllDistricts: [District]
 }
 
 type UserProfile{
@@ -19,11 +19,11 @@ type UserProfile{
     phone: String
     dateOfBirth: String
     status: Boolean
-    district: [Distrcit]!
+    district: District
 }
-type Distrcit{
+type District{
     id: Int
-    country: [Country]!
+    country: Country
     name: String
 }
 type Country{
