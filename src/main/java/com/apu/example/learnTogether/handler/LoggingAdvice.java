@@ -21,7 +21,7 @@ public class LoggingAdvice {
     }*/
 
     //If we define the Controller then no deadlock and works fine
-    @Pointcut(value = "execution(* com.example.learnTogether.controllers.*.*(..) )")//star first = any package, 2nd = class, 3rd = method
+    @Pointcut(value = "execution(* com.apu.example.learnTogether.controllers.*.*(..) )")//star first = any package, 2nd = class, 3rd = method
     public void controllerPointcut(){
 
     }
@@ -48,7 +48,7 @@ public class LoggingAdvice {
         return object;
     }
 
-    @Pointcut(value = "execution(* com.example.learnTogether.services.impls.*.*(..) )")//star first = any package, 2nd = class, 3rd = method
+    @Pointcut(value = "execution(* com.apu.example.learnTogether.services.impls.*.*(..) )")//star first = any package, 2nd = class, 3rd = method
     public void servicePointcut(){
 
     }
