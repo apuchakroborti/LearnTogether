@@ -4,6 +4,8 @@ import com.fasterxml.jackson.annotation.JsonBackReference;
 import com.fasterxml.jackson.annotation.JsonIdentityInfo;
 import com.fasterxml.jackson.annotation.ObjectIdGenerators;
 import lombok.*;
+import org.hibernate.annotations.Fetch;
+import org.hibernate.annotations.FetchMode;
 
 import javax.persistence.*;
 import java.util.ArrayList;
@@ -32,6 +34,7 @@ public class UserQuestion extends EntityCommon{
     private String elaboration;
 
     //TODO need to join another table to fetch all options data
+    //TODO for every question this option list is called once--> Q?Ensure this is N+1 problem or not
     @ManyToMany(fetch = FetchType.LAZY)
     @JoinTable(name = "QUESTION_OPTION_MAPPING",
             joinColumns = @JoinColumn(name = "QUESTION_ID", referencedColumnName = "id"),
@@ -45,6 +48,7 @@ public class UserQuestion extends EntityCommon{
     private Option answer;
 
     @OneToMany(mappedBy = "question", fetch = FetchType.LAZY, orphanRemoval = true)
+    @Fetch(FetchMode.SUBSELECT)
     private List<Comment> commentList = new ArrayList<>();
 
     private Boolean status;
