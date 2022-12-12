@@ -12,6 +12,8 @@ import com.apu.example.learnTogether.dto.response.ServiceResponse;
 import com.apu.example.learnTogether.exceptions.GenericException;
 import com.apu.example.learnTogether.dto.UserProfileDto;
 import com.apu.example.learnTogether.services.UserProfileService;
+import com.apu.example.learnTogether.views.Views;
+import com.fasterxml.jackson.annotation.JsonView;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
@@ -63,6 +65,7 @@ public class UserProfileController {
 
     @PreAuthorize("hasAnyAuthority('ADMIN', 'USER')")
     @GetMapping(path = "/{id}")
+    @JsonView({Views.UserWithQuestions.class})
     public ServiceResponse<UserProfileDto> getUserProfileById(@PathVariable(name = "id") Long id ) throws GenericException {
         UserProfileDto userProfileDto = customUserService.findUserProfileById(id);
         return new ServiceResponse<>(null, userProfileDto);

@@ -5,6 +5,8 @@ import com.apu.example.learnTogether.dto.UserQuestionDto;
 import com.apu.example.learnTogether.dto.request.UserQuestionSearchCriteria;
 import com.apu.example.learnTogether.dto.response.ServiceResponse;
 import com.apu.example.learnTogether.services.UserQuestionService;
+import com.apu.example.learnTogether.views.Views;
+import com.fasterxml.jackson.annotation.JsonView;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.web.PageableDefault;
@@ -24,8 +26,9 @@ public class UserQuestionController {
     }
 
     @PostMapping
-    public ServiceResponse saveUserQuestion(@Valid @RequestBody UserQuestionDto userQuestionDto) throws GenericException {
-        return new ServiceResponse(null, userQuestionService.save(userQuestionDto));
+    @JsonView({Views.UserWithoutQuestions.class})
+    public ServiceResponse<UserQuestionDto> saveUserQuestion(@JsonView({Views.UserWithoutQuestions.class}) @Valid @RequestBody UserQuestionDto userQuestionDto) throws GenericException {
+        return new ServiceResponse<>(null, userQuestionService.save(userQuestionDto));
     }
 
     @GetMapping("/{id}")

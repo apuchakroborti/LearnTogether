@@ -1,6 +1,12 @@
 package com.apu.example.learnTogether.services.impls;
 
+import com.apu.example.learnTogether.dto.OptionDto;
 import com.apu.example.learnTogether.exceptions.GenericException;
+import com.apu.example.learnTogether.models.Option;
+import com.apu.example.learnTogether.models.UserProfile;
+import com.apu.example.learnTogether.repository.OptionRepository;
+import com.apu.example.learnTogether.repository.UserProfileRepository;
+import com.apu.example.learnTogether.services.OptionService;
 import com.apu.example.learnTogether.specifications.UserQuestionSearchSpecifications;
 import com.apu.example.learnTogether.utils.Utils;
 import com.apu.example.learnTogether.dto.UserQuestionDto;
@@ -15,28 +21,59 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
+import java.time.LocalDateTime;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Optional;
 
 @Service
+@Transactional
 public class UserQuestionServiceImpls implements UserQuestionService {
 
     Logger logger = LoggerFactory.getLogger(UserQuestionServiceImpls.class);
 
     private final UserQuestionRepository userQuestionRepository;
+    private final UserProfileRepository userProfileRepository;
+    private final OptionService optionService;
 
     @Autowired
-    UserQuestionServiceImpls(UserQuestionRepository userQuestionRepository){
+    UserQuestionServiceImpls(UserQuestionRepository userQuestionRepository,
+                             UserProfileRepository userProfileRepository,
+                             OptionService optionService){
         this.userQuestionRepository = userQuestionRepository;
+        this.userProfileRepository = userProfileRepository;
+        this.optionService = optionService;
     }
 
     @Override
-    public UserQuestion save(UserQuestionDto commentDto) throws GenericException {
+    public UserQuestionDto save(UserQuestionDto userQuestionDto) throws GenericException {
         try {
             UserQuestion userQuestion = new UserQuestion();
-            Utils.copyProperty(commentDto, userQuestion);
+            Utils.copyProperty(userQuestionDto, userQuestion);
+
+            Optional<UserProfile> optionalUserProfile = userProfileRepository.findById(userQuestionDto.getUserProfile().getId());
+            if(!optionalUserProfile.isPresent()){
+                throw new GenericException(Defs.USER_PROFILE_NOT_FOUND);
+            }
+            userQuestion.setUserProfile(optionalUserProfile.get());
+            List<Option> optionList = new ArrayList<>();
+
+            for(OptionDto optionDto: userQuestionDto.getOptionList()){
+                Option  option = optionService.getOrCreate(optionDto);
+                optionList.add(option);
+            }
+            userQuestion.setOptionList(optionList);
+            Option answerOption = optionService.getOrCreate(userQuestionDto.getAnswer());
+            userQuestion.setAnswer(answerOption);
+            userQuestion.setElaboration(userQuestion.getDescription());
+            userQuestion.setStatus(true);
+            userQuestion.setCreateTime(LocalDateTime.now());
+
             userQuestion = userQuestionRepository.save(userQuestion);
-            return userQuestion;
+            Utils.copyProperty(userQuestion, userQuestionDto);
+            return userQuestionDto;
         }catch (Exception e){
             logger.error("Exception occurred while saving, message: {}", e.getMessage());
             throw new GenericException(e.getMessage());

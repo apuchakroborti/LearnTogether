@@ -1,8 +1,9 @@
 package com.apu.example.learnTogether.models;
 
-import lombok.Data;
-import lombok.Getter;
-import lombok.Setter;
+import com.fasterxml.jackson.annotation.JsonBackReference;
+import com.fasterxml.jackson.annotation.JsonIdentityInfo;
+import com.fasterxml.jackson.annotation.ObjectIdGenerators;
+import lombok.*;
 
 import javax.persistence.*;
 import java.util.ArrayList;
@@ -12,13 +13,15 @@ import java.util.List;
 @Table(name = "USER_QUESTION")
 @Getter
 @Setter
-@Data
+@ToString()
+@NoArgsConstructor
+@AllArgsConstructor
 public class UserQuestion extends EntityCommon{
     @Id
     @GeneratedValue(strategy= GenerationType.IDENTITY)
     private Long id;
 
-    @ManyToOne
+    @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "USER_ID")
     private UserProfile userProfile;
 

@@ -99,11 +99,24 @@ public class OptionServiceImpls implements OptionService {
     @Override
     public Option getOrCreate(OptionDto optionDto) throws GenericException{
         try {
-            Option option = this.getById(optionDto.getId());
-            if(Objects.isNull(option)){
-                option = this.save(optionDto);
+            if(optionDto.getId()!=null){
+                Optional<Option> optional = optionRepository.findById(optionDto.getId());
+                if(optional.isPresent())return optional.get();
+                else{
+                    throw new GenericException("Option not found by id!");
+                }
+            }else if(optionDto.getValue()!=null){
+                Optional<Option> optional = optionRepository.findByValue(optionDto.getValue());
+                if(optional.isPresent())return optional.get();
+                else{
+                    Option option = new Option();
+                    Utils.copyProperty(optionDto, option);
+                    option = optionRepository.save(option);
+                    return option;
+                }
+            }else {
+                throw new GenericException("Option id or value must be provided!");
             }
-            return option;
         }catch (Exception e){
             logger.error("Error occurred while get or create option!");
             throw new GenericException(e.getMessage());

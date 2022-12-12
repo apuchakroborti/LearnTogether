@@ -8,7 +8,7 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 
 public interface UserQuestionService {
-    UserQuestion save(UserQuestionDto userQuestionDto) throws GenericException;
+    UserQuestionDto save(UserQuestionDto userQuestionDto) throws GenericException;
     UserQuestion getById(Long id) throws GenericException;
     Page<UserQuestion> getBySearchCriteria(UserQuestionSearchCriteria criteria, Pageable pageable) throws GenericException;
     UserQuestion updateById(Long id, UserQuestionDto userQuestionDto) throws GenericException;

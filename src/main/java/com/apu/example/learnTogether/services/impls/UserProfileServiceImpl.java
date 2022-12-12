@@ -188,7 +188,7 @@ public class UserProfileServiceImpl implements UserProfileService {
             Optional<UserProfile> optionalUser = userProfileRepository.findById(id);
 
             if (!optionalUser.isPresent() || optionalUser.get().getStatus().equals(false)) {
-                throw  new GenericException(Defs.EMPLOYEE_NOT_FOUND);
+                throw  new GenericException(Defs.USER_PROFILE_NOT_FOUND);
             } else {
                 UserProfileDto customUserDto = new UserProfileDto();
                 Utils.copyProperty(optionalUser.get(), customUserDto);
@@ -211,7 +211,7 @@ public class UserProfileServiceImpl implements UserProfileService {
 
             Optional<UserProfile> optionalEmployee = userProfileRepository.findById(id);
             if (!optionalEmployee.isPresent() || optionalEmployee.get().getStatus().equals(false)){
-                throw new GenericException(Defs.EMPLOYEE_NOT_FOUND);
+                throw new GenericException(Defs.USER_PROFILE_NOT_FOUND);
             }
 
 
@@ -280,7 +280,7 @@ public class UserProfileServiceImpl implements UserProfileService {
                 throw  new GenericException(Defs.NO_PERMISSION_TO_DELETE);
             }
             if (!optionalEmployee.isPresent()) {
-               throw new GenericException(Defs.EMPLOYEE_NOT_FOUND);
+               throw new GenericException(Defs.USER_PROFILE_NOT_FOUND);
             }
 
             UserProfile employee = optionalEmployee.get();

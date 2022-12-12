@@ -1,5 +1,9 @@
 package com.apu.example.learnTogether.models;
 
+import com.fasterxml.jackson.annotation.JsonIdentityInfo;
+import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.annotation.JsonManagedReference;
+import com.fasterxml.jackson.annotation.ObjectIdGenerators;
 import lombok.*;
 import org.hibernate.annotations.Fetch;
 import org.hibernate.annotations.FetchMode;
@@ -17,7 +21,8 @@ import java.util.List;
 @Setter
 @NoArgsConstructor
 @AllArgsConstructor
-public class UserProfile extends EntityCommon implements Serializable {
+@ToString
+public class UserProfile extends EntityCommon /*implements Serializable*/ {
     @Id
     @GeneratedValue(strategy= GenerationType.IDENTITY)
     private Long id;
@@ -59,8 +64,9 @@ public class UserProfile extends EntityCommon implements Serializable {
     @JoinColumn(name ="oauth_user_id")
     private User oauthUser;
 
-    @OneToMany(mappedBy = "userProfile", fetch = FetchType.LAZY, cascade = CascadeType.ALL, orphanRemoval = true)
+    @OneToMany(mappedBy = "userProfile", fetch = FetchType.LAZY, /*cascade = CascadeType.ALL,*/ orphanRemoval = true)
     @Fetch(FetchMode.SUBSELECT)
+//    @JsonIgnore
     private List<UserQuestion> questionList = new ArrayList<>();
 
     @ManyToMany(fetch = FetchType.LAZY)

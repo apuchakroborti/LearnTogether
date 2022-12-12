@@ -1,5 +1,6 @@
 package com.apu.example.learnTogether.models;
 
+import com.fasterxml.jackson.annotation.JsonManagedReference;
 import lombok.*;
 
 import javax.persistence.*;
@@ -14,7 +15,7 @@ import java.util.List;
 @NoArgsConstructor
 @AllArgsConstructor
 @ToString
-public class Country implements Serializable {
+public class Country /*implements Serializable */{
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -24,5 +25,6 @@ public class Country implements Serializable {
     private String code;
 
     @OneToMany(mappedBy = "country", fetch = FetchType.LAZY)
+//    @JsonManagedReference
     private List<District> districtList = new ArrayList<>();
 }
